@@ -16,6 +16,7 @@ This project required several things be changed in order to begin using the mach
 * Updated LifeGoal and Hobby category names for clarity and ease
 * Converted all columns to factors
 * Converted the ReturnToOffice column as binary for performance testing
+* Created multiple variables with different conditions to test feature selection and model performance
 
 
 ## Libraries Used
@@ -32,17 +33,30 @@ library(earth)
 ## Modeling Techniques
 Logistic Regression was used in this project as the data is all categorical. A combination of gbmImp, the marsModel and glm were utilized for feature selection.
 
-  A classifiation model to predict a desire to return to the office based on external factors
+## Analysis Methods
+--//add which graphs you used, confusion matrix, precision,recall,
+
+
+## References
+Forte, R. M. (2015). Mastering predictive analytics with R. Packt Publishing Ltd. 
+
   
-  Project for Regis University MSDS692, Data Science Practicum I
   
-  Erin Tansley
   
-  holco811@regis.edu
-  Documentation and Storage for ET Practicum 1
   
-  Project Files:
   
-  returntowork5102021.csv - Raw data self collected that may be used without license issues
+  
+  
+  
+A classifiation model to predict a desire to return to the office based on external factors
+  
+Project for Regis University MSDS692, Data Science Practicum I
+  
+Erin Tansley - holco811@regis.edu
+Documentation and Storage for ET Practicum 1
+  
+Project Files:
+  
+returntowork5102021.csv - Raw data self collected that may be used without license issues
   
   
