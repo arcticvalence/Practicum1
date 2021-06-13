@@ -13,3 +13,4 @@ workdata_raw <- read.csv('returntowork5112021.csv', header = TRUE)
 
 #Displays the first 5 lines of the data
 head(workdata_raw)
+
