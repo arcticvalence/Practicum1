@@ -29,7 +29,7 @@ library(corrplot)
 library(ISLR)
 library(earth)
 
-# Modeling Techniques
+## Modeling Techniques
 Logistic Regression was used in this project as the data is all categorical. A combination of gbmImp, the marsModel and glm were utilized for feature selection.
 
   A classifiation model to predict a desire to return to the office based on external factors
