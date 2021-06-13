@@ -4,9 +4,24 @@
 ## Project Summary
 This project was created using a self-collected dataset via a Google Docs form. The main objective of my analysis was to answer the question: "Can you predict if office workers will want to return to the office after the COVID pandemic has subsided based on external factors?". The modeling I chose for this project was logistic regression in R utilizing R Studio. 
 
+## Data Cleaning Methods
+This project required several things be changed in order to begin using the machine learning model:
+* Removal
 
 
+##Libraries Used
+library(stringr), (naniar), (caret), (dummies)
+library(glmnet)
+library(fastDummies)
+library(varhandle)
+library(ggplot2)
+library(cowplot)
+library(corrplot)
+library(ISLR)
+library(earth)
 
+#Modeling Techniques
+Logistic Regression was used in this project as the data is all categorical. A combination of gbmImp, the marsModel and glm were utilized for feature selection.
 
   A classifiation model to predict a desire to return to the office based on external factors
   
