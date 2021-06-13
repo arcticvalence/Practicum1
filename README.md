@@ -6,7 +6,16 @@ This project was created using a self-collected dataset via a Google Docs form. 
 
 ## Data Cleaning Methods
 This project required several things be changed in order to begin using the machine learning model:
-* Removal
+* Updated column headers for clarity and ease
+* Removed the timestamp column that Google automatically assigned as key values for each row
+* Removed the UserID column as it was only relevant for the survey payment information
+* Removed specific rows that were answered by individuals who did not reside in the United States
+* Stripped extra characters out of the ZipCode column
+* Updated data that upon export saved to "5-Mar" instead of the category of 3-5
+* Updated various versions of "N/A" to be uniform and replaced with 0
+* Updated LifeGoal and Hobby category names for clarity and ease
+* Converted all columns to factors
+* Converted the ReturnToOffice column as binary for performance testing
 
 
 ## Libraries Used
