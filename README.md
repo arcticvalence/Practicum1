@@ -1,4 +1,4 @@
-# Predicing Return To The Office
+# Predicting Return To The Office
 
 
 ## Project Summary
