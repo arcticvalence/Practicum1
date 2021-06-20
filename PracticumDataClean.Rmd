@@ -1,4 +1,4 @@
-##This file holds the commands to read in the raw data, clean the ##data, adjust for null values and creates the data subset variables
+##This file holds the commands to read in the raw data, clean the data, adjust for null values and creates the data subset variables
 
 
 
