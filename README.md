@@ -30,7 +30,11 @@ For the analysis, I utilized tabled confision matrix to show the number of accur
 
 ![alt text](https://user-images.githubusercontent.com/50388830/123482297-3d139f80-d5c2-11eb-8c09-f3298081b168.png)
 
---//add which graphs you used, confusion matrix, precision,recall,
+![alt text](https://user-images.githubusercontent.com/50388830/123482298-3d139f80-d5c2-11eb-962b-e20addbc850c.png)
+![alt text](https://user-images.githubusercontent.com/50388830/123482299-3dac3600-d5c2-11eb-84c5-6b33bd1289ee.png)
+![alt text](https://user-images.githubusercontent.com/50388830/123482302-3e44cc80-d5c2-11eb-90ee-1332602d1e69.png)
+![alt text](https://user-images.githubusercontent.com/50388830/123482304-3e44cc80-d5c2-11eb-85ab-ddd2753701b7.png)
+![alt text](https://user-images.githubusercontent.com/50388830/123482306-3e44cc80-d5c2-11eb-97e9-79cabfedcf6b.png)
 
 
 ## References
