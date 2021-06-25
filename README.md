@@ -21,11 +21,6 @@ This project required several things be changed in order to begin using the mach
 
 ## Libraries Used
 library(stringr), (naniar), (caret), (dummies), (glmnet), (fastDummies), (varhandle), (ggplot2), (cowplot), (corrplot), (ISLR), (earth), (party), (keep), (tidyverse), (car), (dplyr), (ROCR), (GGally), (ggdendro), (rpart), (rpart.plot), (e1071)
-![image](https://user-images.githubusercontent.com/50388830/123470566-d6868580-d5b1-11eb-9b7b-c97aaa917732.png)
-
-
-![image](https://user-images.githubusercontent.com/50388830/123470489-bb1b7a80-d5b1-11eb-884f-72481d43a4dd.png)
-
 
 ## Modeling Techniques
 Logistic Regression was used in this project as the data is all categorical. A combination of gbmImp, the marsModel and glm were utilized for feature selection.
