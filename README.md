@@ -32,18 +32,24 @@ For the analysis, I utilized tabled confision matrix to show the number of accur
 
 ![alt text](https://user-images.githubusercontent.com/50388830/123482297-3d139f80-d5c2-11eb-8c09-f3298081b168.png)
 
+![alt text](https://user-images.githubusercontent.com/50388830/123482304-3e44cc80-d5c2-11eb-85ab-ddd2753701b7.png)
+
+![alt text](https://user-images.githubusercontent.com/50388830/123482306-3e44cc80-d5c2-11eb-97e9-79cabfedcf6b.png)
 
 ![alt text](https://user-images.githubusercontent.com/50388830/123482299-3dac3600-d5c2-11eb-84c5-6b33bd1289ee.png)
 
 ![alt text](https://user-images.githubusercontent.com/50388830/123482302-3e44cc80-d5c2-11eb-90ee-1332602d1e69.png)
 
-![alt text](https://user-images.githubusercontent.com/50388830/123482304-3e44cc80-d5c2-11eb-85ab-ddd2753701b7.png)
 
-![alt text](https://user-images.githubusercontent.com/50388830/123482306-3e44cc80-d5c2-11eb-97e9-79cabfedcf6b.png)
 
 
 ## References
 Forte, R. M. (2015). Mastering predictive analytics with R. Packt Publishing Ltd.
+
+Nwanganga, F., &amp; Chapple, M. (2020). Practical machine learning in R. Wiley. 
+
+StatQuest - https://www.youtube.com/watch?v=C4N3_XJJ-jU
+
 https://mgimond.github.io/Stats-in-R/Logistic.html
 
   
