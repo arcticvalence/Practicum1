@@ -23,9 +23,11 @@ This project required several things be changed in order to begin using the mach
 library(stringr), (naniar), (caret), (dummies), (glmnet), (fastDummies), (varhandle), (ggplot2), (cowplot), (corrplot), (ISLR), (earth), (party), (keep), (tidyverse), (car), (dplyr), (ROCR), (GGally), (ggdendro), (rpart), (rpart.plot), (e1071)
 
 ## Modeling Techniques
-Logistic Regression was used in this project as the data is all categorical. A combination of gbmImp, the marsModel and glm were utilized for feature selection.
+Logistic Regression was used in this project as the data is all categorical. A combination of gbmImp, the marsModel and glm were utilized for feature selection. I additionally explored the Naieve Bayes method and a Decision Tree model but added the decision tree to my next steps of this project were I to take one.
 
 ## Analysis Methods
+For the analysis, I utilized tabled confision matrix to show the number of accurately vs. inaccurately predicted categories. I also utilized a precision/recall graph for each model, I also utilized the precision, recall, f1 score and specificity to access all 3 versions of the model I showcased in my presentation.
+
 --//add which graphs you used, confusion matrix, precision,recall,
 
 
