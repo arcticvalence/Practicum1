@@ -1,0 +1,62 @@
+#This file holds the NaiveBayes model code only
+
+#Creates training and test sets on an 80/20 split
+set.seed(1234)
+wd614sample_set <- sample(nrow(workdata.7NMSVYZ), round(nrow(workdata.7NMSVYZ) * .80), replace = FALSE)
+
+#Training set
+wd614sample_train <- workdata.7NMSVYZ[wd614sample_set, ]
+#Test Set
+wd614sample_test <- workdata.7NMSVYZ[-wd614sample_set,]
+
+#Proportion of class distributions in the whole data set
+round(prop.table(table(select(workdata.7NMSVYZ, ReturnToOffice))),2)
+#Proportion of class distributions in the training data set
+#This proportion is not consistent with the other two
+round(prop.table(table(select(wd614sample_train, ReturnToOffice))),2)
+#Proportion of class distributions in the test data set
+round(prop.table(table(select(wd614sample_test, ReturnToOffice))),2)
+
+#Trains the NaiveBayes Model
+naiv_mod <- naiveBayes(ReturnToOffice ~ ., data = wd614sample_train, laplace = 1)
+naiv_mod
+
+#NaiveBias Model Classification Predictions
+navi_predict <- predict(naiv_mod, wd614sample_test, type = "class")
+navi_predict_table <- table(wd614sample_test$ReturnToOffice, navi_predict)
+navi_predict_table
+
+#Displays the accuracy of the model
+#Predicted Accuracy = 0.5833333
+sum(diag(navi_predict_table)) / nrow(wd614sample_test)
+
+
+#~~~ 85/15 split
+#Creates training and test sets on an 80/15 split
+set.seed(1234)
+wd8515sample_set <- sample(nrow(workdata.7NMSVYZ), round(nrow(workdata.7NMSVYZ) * .85), replace = FALSE)
+
+wd8515sample_train <- workdata.7NMSVYZ[wd8515sample_set, ]
+
+wd8515sample_test <- workdata.7NMSVYZ[-wd8515sample_set,]
+
+
+#Proportion of class distributions in the whole data set
+round(prop.table(table(select(workdata.7NMSVYZ, ReturnToOffice))),2)
+#Proportion of class distributions in the training data set
+round(prop.table(table(select(wd8515sample_train, ReturnToOffice))),2)
+#Proportion of class distributions in the test data set
+round(prop.table(table(select(wd8515sample_test, ReturnToOffice))),2)
+
+#Trains the NaiveBayes Model
+naiv8515_mod <- naiveBayes(ReturnToOffice ~ ., data = wd8515sample_train, laplace = 1)
+naiv8515_mod
+
+#NaiveBias Model Classification Predictions
+navi8515_predict <- predict(naiv8515_mod, wd8515sample_test, type = "class")
+navi8515_predict_table <- table(wd8515sample_test$ReturnToOffice, navi8515_predict)
+navi8515_predict_table
+
+#Displays the accuracy of the model
+#Predicted Accuracy = 0.6111111
+sum(diag(navi8515_predict_table)) / nrow(wd8515sample_test)
