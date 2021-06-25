@@ -56,19 +56,24 @@ https://mgimond.github.io/Stats-in-R/Logistic.html
   
   
   
+## Thank Yous Due:
+To all the anonymous users who took my survey (seriously)
+
+To the teachers at Regis for putting up with me even though it was frustrating and unpleasant
+
+To my fellow classmates who helped provide wisdom and guidance even if they did not know it
+
+To individuals who help answer questions on forums and post how they have gotten around problems
+
+To T & N for taking chances on me and believing in me even when I did not
+
+To you for reading this
+
+To myself, for making it this far, even if it could be better
+
   
   
+
   
-  
-A classifiation model to predict a desire to return to the office based on external factors
-  
-Project for Regis University MSDS692, Data Science Practicum I
-  
-Erin Tansley - holco811@regis.edu
-Documentation and Storage for ET Practicum 1
-  
-Project Files:
-  
-returntowork5102021.csv - Raw data self collected that may be used without license issues
-  
+
   
