@@ -38,7 +38,8 @@ Logistic Regression was used in this project as the data is all categorical. A c
 
 
 ## References
-Forte, R. M. (2015). Mastering predictive analytics with R. Packt Publishing Ltd. 
+Forte, R. M. (2015). Mastering predictive analytics with R. Packt Publishing Ltd.
+https://mgimond.github.io/Stats-in-R/Logistic.html
 
   
   
