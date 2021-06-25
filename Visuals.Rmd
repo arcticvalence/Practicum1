@@ -1,0 +1,104 @@
+##~~~Visuals~~~
+
+#Return to office results
+ggplot(data=workdata.7NMSVYZ, aes(x=ReturnToOffice, fill=ReturnToOffice))+ geom_bar(alpha=0.4)+ggtitle("Return To Office Result")+labs(x="Answer", y="Count")+coord_flip()
+
+#Life Goal Category
+ggplot(data=workdata.7NMSVYZ, aes(x=LifeGoalCategory, fill=LifeGoalCategory))+ geom_bar(alpha=0.4)+ggtitle("Life Goal Category Counts")+labs(x="Category", y="Count")
+
+#House size
+ggplot(data=workdata.7NMSVYZ, aes(x=HouseholdSize, fill=HouseholdSize))+ geom_bar(alpha=0.4)+ggtitle("Household Size Counts")+labs(x="Category", y="Count")
+
+#Type of Residence
+ggplot(data=workdata.7NMSVYZ, aes(x=ResidenceType
+, fill=ResidenceType
+))+ geom_bar(alpha=0.4)+ggtitle("Residence Type Counts")+labs(x="Category", y="Count")
+
+#Size of Residence
+ggplot(data=workdata.7NMSVYZ, aes(x=ResidenceSize, fill=ResidenceSize))+ geom_bar(alpha=0.4)+ggtitle("Residence Size Counts")+labs(x="Category", y="Count")
+
+#Office to Home Distance
+ggplot(data=workdata.7NMSVYZ, aes(x=HomeToOfficeDistance, fill=HomeToOfficeDistance))+ geom_bar(alpha=0.4)+ggtitle("Home To Office Distance")+labs(x="Category", y="Count")
+
+#Public Transit
+ggplot(data=workdata.7NMSVYZ, aes(x=PublicTransit , fill=PublicTransit ))+ geom_bar(alpha=0.4)+ggtitle("Public Transit Answer")+labs(x="Category", y="Count")
+
+#Vehicle Reliable
+ggplot(data=workdata.7NMSVYZ, aes(x=VehicleReliable , fill=VehicleReliable))+ geom_bar(alpha=0.4)+ggtitle("Vehicle Reliable Answer")+labs(x="Category", y="Count")
+
+#Political Climate
+ggplot(data=workdata.7NMSVYZ, aes(x=StatePoliticalClimate
+ , fill=StatePoliticalClimate))+ geom_bar(alpha=0.4)+ggtitle("Political Climate Answer")+labs(x="Category", y="Count")
+
+#Office Clean
+ggplot(data=workdata.7NMSVYZ, aes(x=OfficeClean
+ , fill=OfficeClean))+ geom_bar(alpha=0.4)+ggtitle("Office Clean Answer")+labs(x="Category", y="Count")
+
+#Home Clean
+ggplot(data=workdata.7NMSVYZ, aes(x=HomeClean, fill=HomeClean))+ geom_bar(alpha=0.4)+ggtitle("Home Clean Answer")+labs(x="Category", y="Count")
+
+#Mental Health Treatment
+ggplot(data=workdata.7NMSVYZ, aes(x=MentalHealthTX
+, fill=MentalHealthTX
+))+ geom_bar(alpha=0.4)+ggtitle("Mental Health Treatment Answer")+labs(x="Category", y="Count")
+
+
+#Physical Health Treatment
+ggplot(data=workdata.7NMSVYZ, aes(x=PhysicalHealthTX, fill=PhysicalHealthTX))+ geom_bar(alpha=0.4)+ggtitle("Physical Health Treatment Answer")+labs(x="Category", y="Count")
+
+#LifeGoalAttainable
+ggplot(data=workdata.7NMSVYZ, aes(x=LifeGoalAttainable, fill=LifeGoalAttainable))+ geom_bar(alpha=0.4)+ggtitle("Life Goal Attainable Answer")+labs(x="Category", y="Count")
+
+#Hobby Category
+ggplot(data=workdata.7NMSVYZ, aes(x=HobbyCategory
+, fill=HobbyCategory
+))+ geom_bar(alpha=0.4)+ggtitle("Hobby Categories")+labs(x="Category", y="Count")
+
+#Hobby and return to work answer
+ggplot(data=workdata.7NMSVYZ, aes(x=HobbyCategory
+, fill=ReturnToOffice
+))+ geom_bar(alpha=0.4)+ggtitle("Hobby Categories")+labs(x="Category", y="Count")
+
+#LifeGoal and Return Answer
+ggplot(data=workdata.7NMSVYZ, aes(x=LifeGoalCategory
+, fill=ReturnToOffice
+))+ geom_bar(alpha=0.4)+ggtitle("Life Goal Category")+labs(x="Category", y="Count")
+
+#Mental Health and Return Answer
+ggplot(data=workdata.7NMSVYZ, aes(x=MentalHealthTX
+, fill=ReturnToOffice
+))+ geom_bar(alpha=0.4)+ggtitle("Mental Health Treatment")+labs(x="Category", y="Count")
+
+#Distance and Return Answer
+ggplot(data=workdata.7NMSVYZ, aes(x=HomeToOfficeDistance
+, fill=ReturnToOffice))+ geom_bar(alpha=0.4)+ggtitle("Distance")+labs(x="Category", y="Count")
+
+#MissOffice Return Office
+#Can only be used in the full data version
+ggplot(data=workdata.7NMSVYZ, aes(x=HomeToOfficeDistance
+, fill=ReturnToOffice))+ geom_bar(alpha=0.4)+ggtitle("Distance")+labs(x="Category", y="Count")
+
+#Can only be run in the Logistic Model Full Code File
+#Precision and recall plot for model 1
+tpd <- predict(wdLogModel, newdata = wdLogTrain, type = "response")
+tpred <- prediction(tpd, wdLogTrain$ReturnToOffice)
+perf <- performance(tpred, measure = "prec", x.measure = "rec")
+plot(perf)
+
+#Precision and recall plot for model 2
+TOD2 <- predict(wdLogModel2, newdata = wdLogTrain, type = "response")
+tpred2 <- prediction(TOD2, wdLogTrain$ReturnToOffice)
+perf2 <- performance(tpred2, measure = "prec", x.measure = "rec")
+plot(perf2)
+
+#Precision and recall plot for model 3
+TOD3 <- predict(wdLogModel3, newdata = wdLogTrain, type = "response")
+tpred3 <- prediction(TOD3, wdLogTrain$ReturnToOffice)
+perf3 <- performance(tpred3, measure = "prec", x.measure = "rec")
+plot(perf3)
+
+
+#Plots the evaluation of the decision tree
+#Can only be run in the Decision Tree Code
+#library(rpart.plot)
+rpart.plot(wdtreeMod)
