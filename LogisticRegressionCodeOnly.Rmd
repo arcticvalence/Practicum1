@@ -1,0 +1,199 @@
+#Logistic Regression Code Only
+
+#~~~Logistic Regression Model~~~#
+#Training and test sets
+#Utilizes a randomization technique for setting the seed and
+#stores the result as a variable
+#eff_seed <- sample(1:2^15, 1)
+#print(sprintf("Seed for session: %s", eff_seed))
+#set.seed(eff_seed)
+set.seed(25651)
+#Creates the training and test sets on an 80/20 split
+wdLogSample <- sample(nrow(workdata.7NMSVYZ), round(nrow(workdata.7NMSVYZ) * .8), replace = FALSE)
+#Training Set
+wdLogTrain <- workdata.7NMSVYZ[wdLogSample, ]
+#Test Set
+wdLogTest <- workdata.7NMSVYZ[-wdLogSample,]
+
+#Proportion of class distributions in the whole data set
+round(prop.table(table(select(workdata.7NMSVYZ, ReturnToOffice))),2)
+#Proportion of class distributions in the training data set
+round(prop.table(table(select(wdLogTrain, ReturnToOffice))),2)
+#Proportion of class distributions in the test data set
+round(prop.table(table(select(wdLogTest, ReturnToOffice))),2)
+
+#Trains the model
+wdLogModel <- glm(data = wdLogTrain, family = binomial, formula = ReturnToOffice ~ .)
+
+#Produces the model results
+summary(wdLogModel)
+
+#Shows the most important variables
+gbmImp <- varImp(wdLogModel, scale = FALSE, importance = TRUE)
+gbmImp
+
+#Change in odds: 0.004729542
+#For one unit increase in LifeGoalCategoryIntellectual Life
+#the odds of having a yes increases by a factor of #0.004729542
+exp(coef(wdLogModel)["LifeGoalCategoryIntellectual Life"])
+
+#negative in z value: 5.981083e-08
+exp(coef(wdLogModel)["HomeCleanYes"])
+
+#Predicting the test data
+wdLogModelPred <- round(predict(wdLogModel, wdLogTest, type = 'response'))
+wdLogModelPredTable <- table(wdLogTest$ReturnToOffice, wdLogModelPred)
+wdLogModelPredTable
+
+
+#~~~~~
+#Stats for Model #1
+#~~~~~
+
+#Predicted accuracy = 0.7083333 with seed 25651
+sum(diag(wdLogModelPredTable)) / nrow(wdLogTest)
+
+#0.7857143
+prec1 <- (precision <- wdLogModelPredTable[2,2] / sum(wdLogModelPredTable[2,]))
+prec1
+
+#0.7333333
+recall1 <- (recall <- wdLogModelPredTable[2,2] / sum(wdLogModelPredTable[,2]))
+recall1
+
+#0.7586207
+f1 <- (f = 2 * precision * recall / (precision + recall))
+f1
+
+#0.6
+spec1 <- (specificity <- wdLogModelPredTable[1,1] / sum(wdLogModelPredTable[1,]))
+spec1
+
+#Precision and recall plot for model 1
+tpd <- predict(wdLogModel, newdata = wdLogTrain, type = "response")
+tpred <- prediction(tpd, wdLogTrain$ReturnToOffice)
+perf <- performance(tpred, measure = "prec", x.measure = "rec")
+plot(perf)
+
+#~~~~~
+
+#Improving the model
+#Library (car)
+#Greater than 5 indicates multicollinerity so remove:
+#HouseholdSize, ResidenceType, ResidenceSize, HomeToOfficeDistance
+#HobbyCategory
+vif(wdLogModel)
+
+#Second train with selected features
+wdLogModel2 <- glm(
+                    data = wdLogTrain,
+                    family = binomial,
+                    formula = ReturnToOffice ~ PublicTransit + VehicleReliable + StatePoliticalClimate + OfficeClean + HomeClean + MentalHealthTX + PhysicalHealthTX + LifeGoalCategory + LifeGoalAttainable)
+
+#Accessing the model
+summary(wdLogModel2)
+#Viewing the feature importance
+vif(wdLogModel2)
+
+#Second prediction table
+wdLogModel2Pred <- round(predict(wdLogModel2, wdLogTest, type = "response"))
+wdLogModel2PredTable <- table(wdLogTest$ReturnToOffice, wdLogModel2Pred)
+wdLogModel2PredTable
+
+#Precision and recall plot for model 2
+TOD2 <- predict(wdLogModel2, newdata = wdLogTrain, type = "response")
+tpred2 <- prediction(TOD2, wdLogTrain$ReturnToOffice)
+perf2 <- performance(tpred2, measure = "prec", x.measure = "rec")
+plot(perf2)
+
+#~~~~~
+#Stats for Model #2
+#~~~~~
+#Predicted accuracy = 0.6666667 accuracy decreased here
+sum(diag(wdLogModel2PredTable)) / nrow(wdLogTest)
+
+#0.7857143
+prec2 <- (precision <- wdLogModel2PredTable[2,2] / sum(wdLogModel2PredTable[2,]))
+prec2
+
+#0.6875
+recall2 <- (recall <- wdLogModel2PredTable[2,2] / sum(wdLogModel2PredTable[,2]))
+recall2
+
+#0.7333333
+f2 <- (f = 2 * precision * recall / (precision + recall))
+f2
+
+#0.5
+spec2 <- (specificity <- wdLogModel2PredTable[1,1] / sum(wdLogModel2PredTable[1,]))
+spec2
+
+
+
+#~~~~~
+
+#Third train with selected features
+wdLogModel3 <- glm(
+                    data = wdLogTrain,
+                    family = binomial,
+                    formula = ReturnToOffice ~ HomeToOfficeDistance + LifeGoalCategory + HobbyCategory + MentalHealthTX)
+
+#Accessing the model
+summary(wdLogModel3)
+#Viewing the feature importance
+vif(wdLogModel3)
+
+#Second prediction table
+wdLogModel3Pred <- round(predict(wdLogModel3, wdLogTest, type = "response"))
+wdLogModel3PredTable <- table(wdLogTest$ReturnToOffice, wdLogModel3Pred)
+wdLogModel3PredTable
+
+#Precision and recall plot for model 3
+TOD3 <- predict(wdLogModel3, newdata = wdLogTrain, type = "response")
+tpred3 <- prediction(TOD3, wdLogTrain$ReturnToOffice)
+perf3 <- performance(tpred3, measure = "prec", x.measure = "rec")
+plot(perf3)
+
+
+#Assesses how well the model fits the data, large
+#number indicates a poor fit (130.4051)
+ND3 <- wdLogModel3$null.deviance
+#This value needs to be smaller than the null and it is
+#(106.7138)
+Dev3 <- wdLogModel3$deviance
+#Chi-square (23.69135)
+chi3 <- ND3 - Dev3
+#Pseudo.R2 - this model can account for 0.181675 of the
+#variability 
+mod3Pseudo <- chi3 / ND3
+
+#16
+chi3diff <- wdLogModel3$df.null - wdLogModel3$df.residual
+#(0.09646578) - does not show that this has a significant
+#improvement
+chi3prob <- 1 - pchisq(chi3, chi3diff)
+
+#~~~~~
+#Stats for Model #3
+#~~~~~
+
+#Predicted accuracy = 0.75 when picking the features that
+#have the stars
+sum(diag(wdLogModel3PredTable)) / nrow(wdLogTest)
+
+#0.8571429
+prec3 <- (precision <- wdLogModel3PredTable[2,2] / sum(wdLogModel3PredTable[2,]))
+prec3
+
+#0.75
+recall3 <- (recall <- wdLogModel3PredTable[2,2] / sum(wdLogModel3PredTable[,2]))
+recall3
+
+#0.8
+f3 <- (f = 2 * precision * recall / (precision + recall))
+f3
+
+#0.6
+spec3 <- (specificity <- wdLogModel3PredTable[1,1] / sum(wdLogModel3PredTable[1,]))
+spec3
+
