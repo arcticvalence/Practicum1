@@ -28,6 +28,8 @@ Logistic Regression was used in this project as the data is all categorical. A c
 ## Analysis Methods
 For the analysis, I utilized tabled confision matrix to show the number of accurately vs. inaccurately predicted categories. I also utilized a precision/recall graph for each model, I also utilized the precision, recall, f1 score and specificity to access all 3 versions of the model I showcased in my presentation.
 
+![alt text]https://user-images.githubusercontent.com/50388830/123482297-3d139f80-d5c2-11eb-8c09-f3298081b168.png
+
 --//add which graphs you used, confusion matrix, precision,recall,
 
 
