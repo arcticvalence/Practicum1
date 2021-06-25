@@ -1,0 +1,42 @@
+#Decision Tree Model Code Only
+
+
+#~~~~~~
+#Decision Tree Model
+#~~~~~~
+
+#Randomizes the seed and saves the seed as a variable
+#To then go back and capture which seed had the best results
+#eff_seed <- sample(1:2^15, 1)
+#print(sprintf("Seed for session: %s", eff_seed))
+#set.seed(eff_seed)
+set.seed(14748)
+treesamp <- sample(nrow(workdata.7NMSVYZ), round(nrow(workdata.7NMSVYZ) * .80), replace = FALSE)
+treetrain <- workdata.7NMSVYZ[treesamp,]
+treetest <- workdata.7NMSVYZ[-treesamp,]
+
+#Shows the proportion of data within the training and test sets
+round(prop.table(table(select(treetrain, ReturnToOffice))),2)
+round(prop.table(table(select(treetest, ReturnToOffice))),2)
+
+
+#Training the model
+#library(rpart)
+wdtreeMod <- 
+rpart(
+  ReturnToOffice ~ .,
+  method = "class",
+  data = treetrain
+)
+
+#Evaluating the model via graph
+#library(rpart.plot)
+rpart.plot(wdtreeMod)
+
+#Creates the prediction table
+wdtreepred <- predict(wdtreeMod, treetest, type = "class")
+wdtreepredtable <- table(treetest$ReturnToOffice, wdtreepred)
+wdtreepredtable
+
+#Predicted Accuracy = 
+sum(diag(wdtreepredtable)) / nrow(treetest)
