@@ -1,0 +1,788 @@
+#---
+#title: "Practicum1"
+#author: "Erin Tansley"
+#date: "5/10/2021"
+#output: html_document
+#---
+
+#Confirms my working directory:
+#"C:/Users/Rin/OneDrive/Documents/R"
+getwd()
+
+#Libraries used
+library(stringr)
+library(naniar)
+library(caret)
+library(dummies)
+library(glmnet)
+library(fastDummies)
+library(varhandle)
+library(ggplot2)
+library(cowplot)
+library(corrplot)
+library(ISLR)
+library(earth)
+library(party)
+library(keep)
+library(tidyverse)
+library(car)
+
+
+#Imports the data without headers - in raw form, my headers
+#are currently long and spaced questions which will need to be
+#replaced prior to puting it into the model
+workdata_raw <- read.csv('returntowork5112021.csv', header = TRUE)
+#Displays the first 5 lines of the data
+head(workdata_raw)
+
+#Changes the column names
+colnames(workdata_raw) <- c("Timestamp","UserID","ZipCode","HouseholdSize","ResidenceType","ResidenceSize","HomeToOfficeDistance","PublicTransit","VehicleYear", "VehicleReliable","StatePoliticalClimate","OfficeClean",
+"HomeClean","MentalHealthTX","PhysicalHealthTX","LifeGoalCategory", "LifeGoalAttainable","HobbyCategory","MissOfficeSocial","ReturnToOffice")
+
+#Exploratory steps to view summaries of the data
+str(workdata_raw)
+summary(workdata_raw)
+glimpse(workdata_raw)
+
+
+#Drops the first and second column as the timestamp and UserID
+#columns are not relevant to this project
+workdata.1 <- workdata_raw[-c(1,2)]
+summary(workdata.1)
+#View(workdata.1)
+
+#Removes 3 specific rows from users outside of the US
+workdata.2 <- workdata.1[-c(2,3,5),]
+#View(workdata.2)
+
+#Inserts leading 0s for the zip codes that start with 0
+workdata.2$ZipCode <- str_pad(workdata.2$ZipCode, 5, pad = "0")
+#View(workdata.2)
+
+#Strips the extra characters out of the zip code column
+workdata.2$ZipCode <- substr(workdata.2$ZipCode, 1, 5)
+#View(workdata.2)
+
+
+#Had a unique challenge here, wasn't able to get this to replace
+#information as a group and then had to make sure my replacement
+#was in parenthesis so it wouldn't return -2 as the result
+#Transforms the rows that had 5-Mar as a result into a category
+#group of "3-5" members of the household
+hhsize <- which(workdata.2$HouseholdSize == "5-Mar")
+#View(hhsize)
+
+workdata.2$HouseholdSize <- replace(workdata.2$HouseholdSize, c(2,5,7,8,10,11,15,16,19,20,22,23,25,30,33,34,36,37,42,44,45,46,52,53,54,55,56,58,60,62,64,65,67,70,72,78,79,81,82,84,85,92,96,97,100,103,105,106,110,114,115,116,118), "3-5")
+#View(workdata.2)
+str(workdata.2)
+
+#Creates a variable for all of the "N/A" style values in my
+#year column - this could be used more broadly if I had
+#additional user provided values
+na_strings <- c("Dont have one", "Don't know", "ford", "I do not own a personal vehicle", "n/a", "n/a (don't own one)", "N/A, I do not own a car", "na", "Toyota", "N/A")
+
+#Replaces data that is not numeric in my year column and saves
+#to a new variable
+workdata.3 <- workdata.2 %>%
+replace_with_na_all(condition = ~.x %in% na_strings)
+workdata.3$VehicleYear
+View(workdata.3)
+#Replaces all of the NA values with 0s
+workdata.3$VehicleYear[is.na(workdata.3$VehicleYear)] = 0
+#Views the data to confirm the change was made properly
+#View(workdata.3$VehicleYear)
+
+
+#I changed the category names to be easier to answer by adding
+#descriptions after I had already received responses, this step
+#changes it to be one category group name
+hhsize <- which(workdata.3$LifeGoalCategory == "Environment - Quality of your home, your car, your office and the general spaces where you spend your time during the day and night")
+#View(hhsize)
+
+#Displays which rows have Envrionment as the category
+envrioncat <- which(workdata.3$LifeGoalCategory == "Environment - Quality of your home, your car, your office and the general spaces where you spend your time during the day and night")
+#View(envrioncat)
+
+#Replaces the category name
+workdata.3$LifeGoalCategory <- replace(workdata.3$LifeGoalCategory, c(29,35,74,91,117), "Environment")
+#View(workdata.3$LifeGoalCategory)
+
+#Displays which rows have Adventures as the answer
+advencat <- which(workdata.3$LifeGoalCategory == "Adventures - Travel, experience the world and do things that open you up to new experiences and excitement")
+#View(advencat)
+
+#Replaces the category name
+workdata.3$LifeGoalCategory <- replace(workdata.3$LifeGoalCategory,c(2,4,6,9,12,17,27,32,38,43,46,47,55,56,58,69,87,92,95,100,101,105,106,109,113,114,119,120), "Adventures")
+#View(workdata.3$LifeGoalCategory)
+
+#Displays which rows have Creative Life as the answer
+creativecat <- which(workdata.3$LifeGoalCategory == "Creative Life - Paint, write, play music, or engage in other activities that channel your creativity")
+#View(creativecat)
+
+#Replaces the category name
+workdata.3$LifeGoalCategory <- replace(workdata.3$LifeGoalCategory,c(41,48,59,86,94), "Creative Life")
+#View(workdata.3$LifeGoalCategory)
+
+#Displays which rows have Family Life as the answer
+familycat <- which(workdata.3$LifeGoalCategory == "Family Life - Relationship with your partner, parents and siblings")
+#View(familycat)
+
+#Replaces the category name
+workdata.3$LifeGoalCategory <- replace(workdata.3$LifeGoalCategory,c(8,10,14,15,16,20,23,30,31,34,37,40,42,45,57,60,62,64,65,66,67,68,70,71,76,79,82,83,88,93,96,97,99,104,116,118), "Family Life")
+#View(workdata.3$LifeGoalCategory)
+
+#Displays which rows have Intellectual Life as the answer
+intcat <- which(workdata.3$LifeGoalCategory == "Intellectual Life - Time set aside to learn new things")
+#View(intcat)
+
+#Replaces the category name
+workdata.3$LifeGoalCategory <- replace(workdata.3$LifeGoalCategory,c(3,18,44,49,75,77,84), "Intellectual Life")
+#View(workdata.3$LifeGoalCategory)
+
+#Displays which rows have Skills as the answer
+skillscat <- which(workdata.3$LifeGoalCategory == "Skills- Skills that make you unique and help you build a successful career, or enjoy a meaningful past time")
+#View(skillscat)
+
+#Replaces the category name
+workdata.3$LifeGoalCategory <- replace(workdata.3$LifeGoalCategory,c(7,63,98,115), "Skills")
+#View(workdata.3$LifeGoalCategory)
+
+
+#Displays which rows have Physical as the answer
+physicalcat <- which(workdata.3$HobbyCategory == "Physical - Active hobbies like dancing, yoga, and hiking")
+#View(physicalcat)
+
+#Replaces the hobby category name
+workdata.3$HobbyCategory <- replace(workdata.3$HobbyCategory,c(1,3,7,16,17,18,19,23,25,27,30,31,32,34,35,37,43,46,52,55,57,58,62,63,64,69,73,81,82,85,88,96,101,103,105,106,107,108,109,110,111,112,114,115,118,119,120), "Physical")
+#View(workdata.3$HobbyCategory)
+
+#Displays which rows have Creative as the answer
+creativecat <- which(workdata.3$HobbyCategory == "Creative - Activities like writing, painting, singing, or cooking")
+#View(creativecat)
+
+#Replaces the hobby category name
+workdata.3$HobbyCategory <- replace(workdata.3$HobbyCategory,c(4,5,6,12,14,24,28,29,33,36,38,40,41,42,44,50,51,53,54,56,59,68,71,80,87,89,91,93,98,100,104,113,116), "Creative")
+#View(workdata.3$HobbyCategory)
+
+#Displays which rows have Cerebral as the answer
+cerebralcat <- which(workdata.3$HobbyCategory == "Cerebral - Activities like sudoku, reading, and puzzles")
+#View(cerebralcat)
+
+
+#Replaces the hobby category name
+workdata.3$HobbyCategory <- replace(workdata.3$HobbyCategory,c(2,8,9,10,11,13,15,20,21,22,26,39,45,47,49,60,61,66,72,74,75,76,77,78,79,84,86,90,92,94,95,97,99,102), "Cerebral")
+#View(workdata.3$HobbyCategory)
+
+#Displays which rows have Community as the answer
+communitycat <- which(workdata.3$HobbyCategory == "Community-oriented - Community-driven hobbies like book clubs, helping out at a soup kitchen, or virtually tutoring")
+#View(communitycat)
+
+#Replaces the hobby category name
+workdata.3$HobbyCategory <- replace(workdata.3$HobbyCategory,c(48,65,67,70,83,117), "Community")
+#View(workdata.3$HobbyCategory)
+
+#Changes the data types to factors for modeling
+#workdata.3$ReturnToOffice <- as.factor(workdata.3$ReturnToOffice)
+workdata.3$ZipCode <- as.factor(workdata.3$ZipCode)
+workdata.3$HouseholdSize <- as.factor(workdata.3$HouseholdSize)
+workdata.3$ResidenceType <- as.factor(workdata.3$ResidenceType)
+workdata.3$ResidenceSize <- as.factor(workdata.3$ResidenceSize)
+workdata.3$HomeToOfficeDistance <- as.factor(workdata.3$HomeToOfficeDistance)
+workdata.3$PublicTransit <- as.factor(workdata.3$PublicTransit)
+workdata.3$VehicleYear <- as.factor(workdata.3$VehicleYear)
+workdata.3$VehicleReliable <- as.factor(workdata.3$VehicleReliable)
+workdata.3$StatePoliticalClimate <- as.factor(workdata.3$StatePoliticalClimate)
+workdata.3$OfficeClean <- as.factor(workdata.3$OfficeClean)
+workdata.3$HomeClean <- as.factor(workdata.3$HomeClean)
+workdata.3$MentalHealthTX <- as.factor(workdata.3$MentalHealthTX)
+workdata.3$PhysicalHealthTX <- as.factor(workdata.3$PhysicalHealthTX)
+workdata.3$LifeGoalCategory <- as.factor(workdata.3$LifeGoalCategory)
+workdata.3$LifeGoalAttainable <- as.factor(workdata.3$LifeGoalAttainable)
+workdata.3$HobbyCategory <- as.factor(workdata.3$HobbyCategory)
+workdata.3$MissOfficeSocial <- as.factor(workdata.3$MissOfficeSocial)
+
+str(workdata.3)
+
+#MissOffice Return Office
+ggplot(data=workdata.3, aes(x=MissOfficeSocial
+, fill=ReturnToOffice))+ geom_bar(alpha=0.4)+ggtitle("Miss Office Social")+labs(x="Category", y="Count")
+
+#Creates a variable without the zip code
+workdata.4 <- workdata.3[-c(1)]
+summary(workdata.4)
+View(workdata.4)
+str(workdata.4)
+
+#Creates a variable to test the binary type for my factor
+workdata.5 <- workdata.4
+str(workdata.5)
+workdata.5$ReturnToOffice <- to.dummy(workdata.5$ReturnToOffice, "category")
+
+#Removes the vehicle year
+workdata.6NVY <- workdata.4[-c(6)]
+str(workdata.6NVY)
+
+#Removes the missed social column
+workdata.7NMSVYZ <- workdata.6NVY[-c(15)]
+str(workdata.7NMSVYZ)
+
+#~~~No~~~#
+#try 0 and 1s?
+#workdata.7NMSVYZ[workdata.7NMSVYZ$ReturnToOffice == #"No",]$ReturnToOffice <- "0"
+#workdata.7NMSVYZ[workdata.7NMSVYZ$ReturnToOffice == #"Yes",]$ReturnToOffice <- "1"
+#workdata.7NMSVYZ$ReturnToOffice <- #as.factor(workdata.7NMSVYZ$ReturnToOffice)
+#View(workdata.7NMSVYZ)
+#summary(workdata.7NMSVYZ)
+#str(workdata.7NMSVYZ)
+#~~~No~~~#
+
+###~~~~~Final Variable After Feature Selection
+workdata.8AFS <- workdata.7NMSVYZ[c(4,12,14,15)]
+str(workdata.8AFS)
+###~~~~~
+
+
+#Creates the training and test set with 80/20 split
+#120 items = 96(80) - 24(20)
+set.seed(987954)
+workdata_sample_vector <- createDataPartition(workdata.3$ReturnToOffice, p = 0.80, list = FALSE)
+
+workdata_train <- workdata.3[workdata_sample_vector,]
+
+#workdata_train_features <- workdata.3[, 1:17]
+
+workdata_train_labels <- workdata.3$ReturnToOffice[workdata_sample_vector]
+
+workdata_test <- workdata.3[-workdata_sample_vector,]
+
+workdata_test_labels <- workdata.3$ReturnToOffice[-workdata_sample_vector] 
+
+
+#Trains the logistic regression model with the generalized
+#linear model syntax
+workdata_model <- glm(ReturnToOffice ~., data = workdata_train, family = binomial ("logit"))
+
+summary(workdata_model)
+
+#~~~No Zip ~~~
+
+#Creates the training and test set with 80/20 split
+#120 items = 96(80) - 24(20)
+set.seed(987954)
+workdata_sample_vector_NZ <- createDataPartition(workdata.4$ReturnToOffice, p = 0.80, list = FALSE)
+
+workdataNZ_train <- workdata.4[workdata_sample_vector_NZ,]
+
+workdataNZ_train_labels <- workdata.4$ReturnToOffice[workdata_sample_vector_NZ]
+
+workdataNZ_test <- workdata.4[-workdata_sample_vector_NZ,]
+
+workdataNZ_test_labels <- workdata.4$ReturnToOffice[-workdata_sample_vector_NZ]
+
+
+#Trains the model again without the ZipCode column
+workdata_model_NZ <- glm(ReturnToOffice ~., data = workdataNZ_train, family = binomial ("logit"))
+
+summary(workdata_model_NZ)
+
+#~~~~~~~~~~~
+#~~ test
+workdata_model_NZ2 <- glm(formula = ReturnToOffice ~ HouseholdSize, data = workdataNZ_train, family = binomial("logit"))
+summary(workdata_model_NZ2)
+
+
+#loglikelihooh - This only works with numeric/binary data
+log_likelioods <- function(y_labels, y_probs) {
+y_a <- as.numeric(y_labels)
+y_p <- as.numeric(y_probs)
+y_a * log(y_p) + (1 - y_a) * log(1 - y_p)
+}
+
+dataset_log_likelihood <- function (y_labels, y_probs){
+sum(log_likelihoods(y_labels, y_probs))
+}
+
+
+deviances <- function(y_labels, y_probs){
+-2 * log_likelihoods(y_labels, y_probs)
+}
+
+dataset_deviance <- function(y_labels, y_probs) {
+sum(deviances(y_labels, y_probs))
+}
+
+model_deviance <- function(model, data, output_column) {
+y_labels = data[[output_column]]
+y_probs = predict(model, newdata = data, type = "response")
+dataset_deviance(y_labels, y_probs)
+}
+
+
+#Checks that the function is working with binary model
+model_deviance (workdata_model_Binary, data = workdataBinary_train, output_column = "ReturnToOffice")
+
+#~~~~
+#Null Deviance, this is a way to help evaluate a logistic
+#regression model
+##this likely doesn't work because mine is a factor and the
+##example is a binary? Changed to binary and still gave me NA
+
+#null_deviance <- function(data, output_column){
+#y_labels <- data[[output_column]]
+#y_probs <- mean(data[[output_column]])
+#dataset_deviance(y_labels, y_probs)
+#}
+
+#null_deviance(data = workdataBinary_train, output_column = "ReturnToOffice")
+#~~~~
+
+#model_pseudo_r_squared <- function(model, data, output_column){
+#1 - ( model_deviance(model, data, output_column) / 
+#      null_deviance(data, output_column))
+#}
+
+
+
+
+
+#~~~Binary Column ~~~
+
+
+#Creates the training and test set with 80/20 split
+#120 items = 96(80) - 24(20)
+set.seed(987954)
+workdata_binary_vector <- createDataPartition(workdata.5$ReturnToOffice, p = 0.80, list = FALSE)
+
+workdataBinary_train <- workdata.5[workdata_binary_vector,]
+
+workdataBinary_train_labels <- workdata.5$ReturnToOffice[workdata_binary_vector]
+
+workdataBinary_test <- workdata.5[-workdata_binary_vector,]
+
+workdataBinary_test_labels <- workdata.5$ReturnToOffice[-workdata_binary_vector]
+
+
+#Trains the model again with the binary data
+workdata_model_Binary <- glm(ReturnToOffice ~., data = workdataBinary_train, family = binomial ("logit"))
+
+summary(workdata_model_Binary)
+workdata.5$ReturnToOffice
+
+#~~~~~~~~~~~
+
+#Test Set Performance
+train_predictions <- predict(workdata_model_NZ, newdata = workdataNZ_train, type = "response")
+train_class_predictions <- as.numeric(train_predictions > 0.5)
+mean(train_class_predictions == workdataNZ_train$ReturnToOffice)
+
+test_predictions = predict(workdata_model_NZ, newdata = workdataNZ_test, type = "response")
+test_class_predictions = as.numeric(test_predictions > 0.05)
+mean(test_class_predictions == workdataNZ_test$ReturnToOffice)
+#My predictions are returning 0, this likely means that this isn't a great set of information with all factors together
+
+#Applies lasso to the data to assess the results for
+#feature selecton and removal
+#cv.glmnet estimates a suitble value
+workdata_train_mat <- model.matrix(ReturnToOffice ~ ., workdataNZ_train)[,-1]
+lambdas <- 10 ^ seq(8, -4, length = 250)
+workdata_models_lasso <- glmnet(workdata_train_mat, workdataNZ_train$ReturnToOffice, aplha = 1, lambda = lambdas, family = "binomial")
+lasso.cv <- cv.glmnet(workdata_train_mat, workdataNZ_train$ReturnToOffice, alpha = 1, lambda = lambdas,family = "binomial")
+lambda_lasso <- lasso.cv$lambda.min
+lambda_lasso
+
+predict(workdata_models_lasso, type = "coefficients",s = lambda_lasso)
+
+#~~~~~~~~~~~
+#NoVehicleYear
+#~~~~~~~~~~~
+set.seed(987954)
+workdata_sample_vector_NVYNZ <- createDataPartition(workdata.6NVY$ReturnToOffice, p = 0.80, list = FALSE)
+
+workdataNVYNZ_train <- workdata.6NVY[workdata_sample_vector_NVYNZ,]
+
+workdataNVYNZ_train_labels <- workdata.6NVY$ReturnToOffice[workdata_sample_vector_NVYNZ]
+
+workdataNVYNZ_test <- workdata.6NVY[-workdata_sample_vector_NVYNZ,]
+
+workdataNVYNZ_test_labels <- workdata.6NVY$ReturnToOffice[-workdata_sample_vector_NVYNZ]
+
+#Trains the model again without the ZipCode or VehicleYear columns
+workdata_model_NVYNZ <- glm(ReturnToOffice ~., data = workdataNVYNZ_train, family = binomial ("logit"))
+
+summary(workdata_model_NVYNZ)
+
+#~~~~~~~~~~~
+#LambdaLasso for 6
+#~~~~~~~~~~~
+
+#Applies lasso to the data to assess the results for
+#feature selecton and removal
+#cv.glmnet estimates a suitble value
+
+wd6_train_mat <- model.matrix(ReturnToOffice ~ ., workdataNVYNZ_train) [,-1]
+lambdas <- 10 ^ seq(8, -4, length = 250)
+wd6_models_lasso <- glmnet(wd6_train_mat, workdataNVYNZ_train$ReturnToOffice, alpha = 1, lambda = lambdas, family = "binomial")
+lasso.cv <- cv.glmnet(wd6_train_mat, workdataNVYNZ_train$ReturnToOffice, alpha = 1, lambda = lambdas, family = "binomial")
+lambda_lasso <- lasso.cv$lambda.min
+lambda_lasso
+
+predict(wd6_models_lasso, type = "coefficients", s = lambda_lasso)
+#Still nothing here
+
+#Training Group
+lasso_train_predictions <- predict(wd6_models_lasso, s = lambda_lasso, newx = wd6_train_mat, type = "response")
+lasso_train_class_predictions <- as.numeric(lasso_train_predictions > 0)
+mean(lasso_train_class_predictions == workdataNVYNZ_train$ReturnToOffice)
+#still 0 results
+
+#Testing Group
+wd_test_mat <- model.matrix(ReturnToOffice ~ ., workdataNVYNZ_test) [,-1]
+lasso_test_predictions <- predict(wd6_models_lasso, s = lambda_lasso, newx = wd_test_mat, type = "response")
+lasso_test_class_predictions <- as.numeric(lasso_test_predictions > 0)
+mean(lasso_test_class_predictions == workdataNVYNZ_test$ReturnToOffice)
+#still 0 results
+
+#~~~~~~~~~~~
+#First train for 6
+#~~~~~~~~~~~
+wd6Train_predictions <- predict(workdata_model_NVYNZ, newdata = workdataNVYNZ_train, type = "response")
+wd6Train_class_predictions = as.numeric(wd6Train_predictions > 0)
+mean(wd6Train_class_predictions == workdataNVYNZ_train$ReturnToOffice)
+
+wd6Test_predictions <- predict(workdata_model_NVYNZ, newdata = workdataNVYNZ_test, type = "response")
+wd6Test_class_predictions = as.numeric(wd6Test_predictions > 0)
+mean(wd6Test_class_predictions == workdataNVYNZ_test$ReturnToOffice)
+
+
+#~~confusion matrix
+(confusion_matrix <- table(predicted = wd6Train_predictions, actual = workdataNVYNZ_train$ReturnToOffice))
+
+(confusion_matrix <- table(predicted = wd6Train_class_predictions, actual = workdataNVYNZ_train$ReturnToOffice))
+
+
+#~~~~~~~~~~~
+#First train for 7
+#~~~~~~~~~~~
+#Call to the glm function with just the 2 categories -
+#Using HobbyCategory to predict return to office
+#good if close to being centered on 0 and are roughly symmetrical
+#Return to office yes = 0.8473 + 0.1401 x 1
+#first term = 0.8473 is the log(odds) of return to work being yes #the second term indicates the increase in the log(odds) of return #to office being no
+#Std = Walds
+#p below 0.05 = statistically significant
+wdlogistic <- glm(HobbyCategory ~ ReturnToOffice, data = workdata.7NMSVYZ, family = "binomial")
+summary(wdlogistic)
+
+View(workdata.7NMSVYZ)
+#Full Model
+wd7logisticFull <- glm(ReturnToOffice ~ ., data = workdata.7NMSVYZ, family = "binomial")
+summary(wd7logisticFull)
+#The numbers in Pr(>|z|) mean that they aren't statistically significant, 
+#anything under 0.05 is
+
+#McFadden's Pseudo Rsq model
+#Both of mine are null, overall effect size
+ll.null <- wd7logisticFull$null.deviance/-2
+ll.proposed <- wd7logisticFull$deviance/-2
+(ll.null - ll.proposed) / 11.null
+(-57.71972) - (-81.50319) / (-57.71972)
+#chisquared - pvalue not that tiny, might be more dumb luck?
+1 - pchisq(2*((-57.71972) - (-81.50319)), df=(length(wd7logisticFull$coefficients)-1))
+
+
+set.seed(987954)
+wd7_vector <- createDataPartition(workdata.7NMSVYZ$ReturnToOffice, p= 0.8, list = FALSE)
+wd7_train <- workdata.7NMSVYZ[wd7_vector,]
+wd7_train_labels <- workdata.7NMSVYZ$ReturnToOffice[wd7_vector]
+wd7_test <- workdata.7NMSVYZ[-wd7_vector,]
+wd7_test_labels <- workdata.7NMSVYZ$ReturnToOffice[-wd7_vector]
+
+wd7TRmodel <- glm(ReturnToOffice ~ ., data = wd7_train, family = binomial("logit"))
+summary(wd7TRmodel)
+#The only real thing here is still the intellectual life
+
+model_deviance(wd7TRmodel, data = wd7_train, output_column = "ReturnToOffice")
+
+#Well, this at least gave me a number other than 0, 0.8125
+wd7train_predictions <- predict(wd7TRmodel, newdata = wd7_train, type = "response")
+wd7train_class_predictions <- as.numeric(wd7train_predictions > 0.5)
+mean(wd7train_class_predictions == wd7_train$ReturnToOffice)
+
+#This gave me a number as well, 0.5833333
+wd7test_predictions <- predict(wd7TRmodel, newdata = wd7_test, type = "response")
+wd7test_class_predictions <- as.numeric (wd7test_predictions > 0.5)
+mean(wd7test_class_predictions)
+
+
+#This was not good, not with all of the features
+#29 7
+#11 49
+(wd7confusion_matrix <- table(predicted = wd7train_class_predictions, actual = wd7_train$ReturnToOffice))
+
+#0.8166667
+(precision <- wd7confusion_matrix[2,2] / sum(wd7confusion_matrix[2,]))
+
+#0.875
+(recall <- wd7confusion_matrix[2,2] / sum(wd7confusion_matrix[,2]))
+
+#0.8448276
+(f = 2 * precision * recall / (precision + recall))
+
+#0.8055556
+(specificity <- wd7confusion_matrix[1,1] / sum(wd7confusion_matrix[1,]))
+
+#Not great
+(wd7testmatrix <- table(predicted = wd7test_class_predictions, actual = wd7_test$ReturnToOffice))
+
+#Need to get the important features
+
+marsModel <- earth(ReturnToOffice ~ ., data=workdata.7NMSVYZ) 
+ev <- evimp (marsModel)
+
+par(mar = rep(2,4))
+plot(ev)
+
+#Shows the most important 20 variables
+gbmImp <- varImp(wd7TRmodel, scale = FALSE)
+gbmImp
+
+#~~~~~~~~~~~
+#Training for 8
+#~~~~~~~~~~~
+
+#Full Model
+wd8logisticFull <- glm(ReturnToOffice ~ ., data = workdata.8AFS, family = "binomial")
+summary(wd8logisticFull)
+#The numbers in Pr(>|z|) mean that they aren't statistically significant, anything under 0.05 is
+
+#McFadden's Pseudo Rsq model
+#Both of mine are null, overall effect size
+ll.null <- wd8logisticFull$null.deviance/-2
+ll.proposed <- wd8logisticFull$deviance/-2
+#ll.null - ll.proposed) / 11.null
+(-81.50319) - (-66.50481) / (-81.50319)
+
+#chisquared - pvalue not that tiny, might be more dumb luck?
+1 - pchisq(2*((-81.50319) - (-66.50481)), df=(length(wd8logisticFull$coefficients)-1))
+
+##~~Training and test
+set.seed(987954)
+workdata.8AFS_vector <- createDataPartition(workdata.8AFS$ReturnToOffice, p= 0.8, list = FALSE)
+wd8_train <- workdata.8AFS[workdata.8AFS_vector,]
+wd8_train_labels <- workdata.8AFS$ReturnToOffice[workdata.8AFS_vector]
+wd8_test <- workdata.8AFS[-workdata.8AFS_vector,]
+wd8_test_labels <- workdata.8AFS$ReturnToOffice[-workdata.8AFS_vector]
+
+wd8TRmodel <- glm(ReturnToOffice ~ ., data = wd8_train, family = binomial("logit"))
+summary(wd8TRmodel)
+
+model_deviance(wd8TRmodel, data = wd8_train, output_column = "ReturnToOffice")
+
+#Well, this at least gave me a number other than 0, 0.71875
+wd8train_predictions <- predict(wd8TRmodel, newdata = wd8_train, type = "response")
+wd8train_class_predictions <- ass.numeric(wd8train_predictions > 0.5)
+mean(wd8train_class_predictions == wd8_train$ReturnToOffice)
+
+#0.5833333 or 0.6666667 if I remove the $
+wd8test_predictions <- predict(wd8TRmodel, newdata = wd8_test, type = "response")
+wd8test_class_predictions <- as.numeric(wd8test_predictions > 0.5)
+mean(wd8test_class_predictions)
+#~~
+(wd8confusion_matrix <- table(predicted = wd8train_class_predictions, actual = wd8_train$ReturnToOffice))
+
+
+#0.7164178
+(precision <- wd8confusion_matrix[2,2] / sum(wd8confusion_matrix[2,]))
+#0.8571429
+(recall <- wd8confusion_matrix[2,2] / sum(wd8confusion_matrix[,2]))
+#0.7804878
+(f = 2 * precision * recall / (precision + recall))
+#0.7241379
+(specificity <- wd8confusion_matrix[1,1] / sum(wd8confusion_matrix[1,]))
+
+#Not great at all
+(wd8testmatrix <- table(predicted = wd8test_class_predictions, actual = wd8_test$ReturnToOffice))
+
+set.seed(987954)
+sunvec <- createDataPartition(workdata.8AFS$ReturnToOffice, p = 0.8, list = FALSE)
+sun_train <- workdata.8AFS[sunvec,]
+sun_train_labels <- workdata.8AFS$ReturnToOffice[sunvec]
+sun_test <- workdata.8AFS[-sunvec,]
+sun_test_labels <- workdata.8AFS$ReturnToOffice[-sunvec]
+
+#Proportion of class distributions in the whole data set
+round(prop.table(table(select(workdata.8AFS, ReturnToOffice))),2)
+#Proportion of class distributions in the training data set
+round(prop.table(table(select(sun_train, ReturnToOffice))),2)
+#Proportion of class distributions in the test data set
+round(prop.table(table(select(sun_test, ReturnToOffice))),2)
+
+sun_model <- glm(ReturnToOffice ~ ., data = sun_train, family = binomial("logit"))
+
+summary(sun_model)
+
+sun1mod <- glm(ReturnToOffice ~ HobbyCategory, data = sun_train, family = binomial)
+summary(sun1mod)
+
+##~~~Visuals~~~
+
+#Return to office results
+ggplot(data=workdata.8AFS, aes(x=ReturnToOffice, fill=ReturnToOffice))+ geom_bar(alpha=0.4)+ggtitle("Return To Office Result")+labs(x="Answer", y="Count")+coord_flip()
+
+ggplot(data=workdata.8AFS, aes(x=LifeGoalCategory, fill=LifeGoalCategory))+ geom_bar(alpha=0.4)+ggtitle("Life Goal Category Counts")+labs(x="Category", y="Count")
+
+
+ggplot(data=workdata.8AFS, aes(x=HobbyCategory, fill=HobbyCategory))+ geom_bar(alpha=0.4)+ggtitle("Hobby Category Counts")+labs(x="Category", y="Count")
+
+set.seed(1234)
+wdsample_set <- sample(nrow(workdata.8AFS), round(nrow(workdata.8AFS) * .8), replace = FALSE)
+wdsample_train <- workdata.8AFS[wdsample_set, ]
+wdsample_test <- workdata.8AFS[-wdsample_set,]
+
+bookmod <- glm(data = wdsample_train, family = binomial, formula = ReturnToOffice ~ .)
+
+summary(bookmod)
+
+#Change in odds: 0.05969743
+#For one unit increase in LifeGoalCategoryIntellectual Life
+#the odds of having a yes increases by a factor of #0.05969743
+exp(coef(bookmod)["LifeGoalCategoryIntellectual Life"])
+
+#negative in z value: 0.3021848
+exp(coef(bookmod)["LifeGoalCategoryEnvironment"])
+
+#Rounding helps get rid of the decimals
+bookpred <- round(predict(bookmod, wdsample_test, type = "response"))
+bookpred_table <- table(wdsample_test$ReturnToOffice, bookpred)
+bookpred_table
+
+#This model has an accuracy of 0.5833333
+sum(diag(bookpred_table)) / nrow(wdsample_test)
+#another way to identify multicollinerity , a VIF of greater than 5 indicates
+vif(bookmod)
+
+#Building a new model
+newWDmodel <- glm(data = wd7_train,
+                family = binomial,
+                formula = ReturnToOffice ~ HomeToOfficeDistance + LifeGoalCategory + HobbyCategory)
+                
+summary(newWDmodel)
+
+#Building a new model
+newWD8model <- glm(data = wdsample_train,
+                family = binomial,
+                formula = ReturnToOffice ~ HomeToOfficeDistance + LifeGoalCategory + HobbyCategory)
+summary(newWD8model)
+
+
+vif(newWD8model)
+
+#with #7 data
+bookpred2 <- round(predict(newWDmodel, wd7_test, type = "response"))
+bookpred_table2 <- table(wd7_test$ReturnToOffice, bookpred2)
+bookpred_table2
+
+#This model has an accuracy of 0.5833333
+sum(diag(bookpred_table2)) / nrow(wd7_test)
+
+#with #8 data
+bookpred3 <- round(predict(newWD8model, wdsample_test, type = "response"))
+bookpred_table3 <- table(wdsample_test$ReturnToOffice, bookpred3)
+bookpred_table3
+#This model has an accuracy of 0.5833333
+sum(diag(bookpred_table3)) / nrow(wdsample_test)
+
+
+
+
+##~~~Visuals~~~
+
+#Return to office results
+ggplot(data=workdata.7NMSVYZ, aes(x=ReturnToOffice, fill=ReturnToOffice))+ geom_bar(alpha=0.4)+ggtitle("Return To Office Result")+labs(x="Answer", y="Count")+coord_flip()
+
+#Life Goal Category
+ggplot(data=workdata.7NMSVYZ, aes(x=LifeGoalCategory, fill=LifeGoalCategory))+ geom_bar(alpha=0.4)+ggtitle("Life Goal Category Counts")+labs(x="Category", y="Count")
+
+#House size
+ggplot(data=workdata.7NMSVYZ, aes(x=HouseholdSize, fill=HouseholdSize))+ geom_bar(alpha=0.4)+ggtitle("Household Size Counts")+labs(x="Category", y="Count")
+
+#Type of Residence
+ggplot(data=workdata.7NMSVYZ, aes(x=ResidenceType
+, fill=ResidenceType
+))+ geom_bar(alpha=0.4)+ggtitle("Residence Type Counts")+labs(x="Category", y="Count")
+
+#Size of Residence
+ggplot(data=workdata.7NMSVYZ, aes(x=ResidenceSize, fill=ResidenceSize))+ geom_bar(alpha=0.4)+ggtitle("Residence Size Counts")+labs(x="Category", y="Count")
+
+#Office to Home Distance
+ggplot(data=workdata.7NMSVYZ, aes(x=HomeToOfficeDistance, fill=HomeToOfficeDistance))+ geom_bar(alpha=0.4)+ggtitle("Home To Office Distance")+labs(x="Category", y="Count")
+
+#Public Transit
+ggplot(data=workdata.7NMSVYZ, aes(x=PublicTransit , fill=PublicTransit ))+ geom_bar(alpha=0.4)+ggtitle("Public Transit Answer")+labs(x="Category", y="Count")
+
+#Vehicle Reliable
+ggplot(data=workdata.7NMSVYZ, aes(x=VehicleReliable , fill=VehicleReliable))+ geom_bar(alpha=0.4)+ggtitle("Vehicle Reliable Answer")+labs(x="Category", y="Count")
+
+#Political Climate
+ggplot(data=workdata.7NMSVYZ, aes(x=StatePoliticalClimate
+ , fill=StatePoliticalClimate))+ geom_bar(alpha=0.4)+ggtitle("Political Climate Answer")+labs(x="Category", y="Count")
+
+#Office Clean
+ggplot(data=workdata.7NMSVYZ, aes(x=OfficeClean
+ , fill=OfficeClean))+ geom_bar(alpha=0.4)+ggtitle("Office Clean Answer")+labs(x="Category", y="Count")
+
+#Home Clean
+ggplot(data=workdata.7NMSVYZ, aes(x=HomeClean, fill=HomeClean))+ geom_bar(alpha=0.4)+ggtitle("Home Clean Answer")+labs(x="Category", y="Count")
+
+#Mental Health Treatment
+ggplot(data=workdata.7NMSVYZ, aes(x=MentalHealthTX
+, fill=MentalHealthTX
+))+ geom_bar(alpha=0.4)+ggtitle("Mental Health Treatment Answer")+labs(x="Category", y="Count")
+
+
+#Physical Health Treatment
+ggplot(data=workdata.7NMSVYZ, aes(x=PhysicalHealthTX, fill=PhysicalHealthTX))+ geom_bar(alpha=0.4)+ggtitle("Physical Health Treatment Answer")+labs(x="Category", y="Count")
+
+#LifeGoalAttainable
+ggplot(data=workdata.7NMSVYZ, aes(x=LifeGoalAttainable, fill=LifeGoalAttainable))+ geom_bar(alpha=0.4)+ggtitle("Life Goal Attainable Answer")+labs(x="Category", y="Count")
+
+#Hobby Category
+ggplot(data=workdata.7NMSVYZ, aes(x=HobbyCategory
+, fill=HobbyCategory
+))+ geom_bar(alpha=0.4)+ggtitle("Hobby Categories")+labs(x="Category", y="Count")
+
+
+#Hobby and return to work answer
+ggplot(data=workdata.7NMSVYZ, aes(x=HobbyCategory
+, fill=ReturnToOffice
+))+ geom_bar(alpha=0.4)+ggtitle("Hobby Categories")+labs(x="Category", y="Count")
+
+#LifeGoal and Return Answer
+ggplot(data=workdata.7NMSVYZ, aes(x=LifeGoalCategory
+, fill=ReturnToOffice
+))+ geom_bar(alpha=0.4)+ggtitle("Life Goal Category")+labs(x="Category", y="Count")
+
+#Mental Health and Return Answer
+ggplot(data=workdata.7NMSVYZ, aes(x=MentalHealthTX
+, fill=ReturnToOffice
+))+ geom_bar(alpha=0.4)+ggtitle("Mental Health Treatment")+labs(x="Category", y="Count")
+
+#Distance and Return Answer
+ggplot(data=workdata.7NMSVYZ, aes(x=HomeToOfficeDistance
+, fill=ReturnToOffice))+ geom_bar(alpha=0.4)+ggtitle("Distance")+labs(x="Category", y="Count")
+
+
+#MissOffice Return Office
+ggplot(data=workdata.7NMSVYZ, aes(x=HomeToOfficeDistance
+, fill=ReturnToOffice))+ geom_bar(alpha=0.4)+ggtitle("Distance")+labs(x="Category", y="Count")
+
+ggplot(data=workdata.7NMSVYZ, aes(x=ReturnToOffice, fill=ReturnToOffice))+ geom_bar(alpha=0.4)+ggtitle("Return To Office Result")+labs(x="Answer", y="Count")+coord_flip()
+
+#Life Goal Category
+ggplot(data=workdata.7NMSVYZ, aes(x=LifeGoalCategory, fill=LifeGoalCategory))+ geom_bar(alpha=0.4)+ggtitle("Life Goal Category Counts")+labs(x="Category", y="Count")
+
+
+#Hobby Category
+ggplot(data=workdata.7NMSVYZ, aes(x=HobbyCategory
+, fill=HobbyCategory
+))+ geom_bar(alpha=0.4)+ggtitle("Hobby Categories")+labs(x="Category", y="Count")
