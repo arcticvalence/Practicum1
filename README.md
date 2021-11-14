@@ -65,8 +65,6 @@ To my fellow classmates who helped provide wisdom and guidance even if they did 
 
 To individuals who help answer questions on forums and post how they have gotten around problems
 
-To T & N for taking chances on me and believing in me even when I did not
-
 To you for reading this
 
 To myself, for making it this far, even if it could be better
